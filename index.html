@@ -143,6 +143,26 @@ canvas{touch-action:none}
 .mob-nav-btn svg{opacity:.7}
 .mob-nav-btn.active svg,.mob-nav-btn:active svg{opacity:1}
 /* ── MOBILE TOPBAR COMPACT ── */
+/* ── MOBILE SEARCH + AREA BAR ── */
+#mob-search-bar{
+  display:none;position:fixed;top:50px;left:0;right:0;
+  background:var(--panel);backdrop-filter:var(--glass-blur);
+  border-bottom:1px solid var(--panel-border);
+  padding:6px 10px;z-index:99;gap:6px;flex-direction:column;
+}
+#mob-search-input{
+  width:100%;background:rgba(124,92,255,0.1);
+  border:1px solid var(--panel-border);border-radius:20px;
+  padding:7px 14px;color:var(--text);font-size:12px;outline:none;
+}
+#mob-search-input::placeholder{color:var(--text2)}
+#mob-area-row{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+#mob-area-row::-webkit-scrollbar{display:none}
+.mob-area-btn{background:rgba(124,92,255,0.1);border:1px solid var(--panel-border);
+  border-radius:14px;padding:5px 12px;color:var(--text2);font-size:11px;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;min-height:32px;transition:all .2s}
+.mob-area-btn.active,.mob-area-btn:active{background:rgba(124,92,255,0.3);color:var(--text);border-color:var(--accent)}
+
 @media(max-width:600px){
   #topbar{padding:0 10px;gap:6px;height:50px}
   #logo{font-size:15px}
@@ -153,19 +173,17 @@ canvas{touch-action:none}
   #tminus{font-size:11px;padding:3px 8px;min-width:70px}
   #weather-btn{font-size:10px;padding:3px 8px}
   #alert-dot{margin-left:0}
-  /* KPI row — horizontal scroll strip */
+  /* Show mobile search+area bar */
+  #mob-search-bar{display:flex}
+  /* KPI row pushed down to clear search bar (~94px total) */
   #kpi-row{
-    top:50px;left:0;right:0;
-    display:flex;flex-direction:row;gap:0;
+    top:94px;left:0;right:0;
+    display:flex;flex-direction:row;
     overflow-x:auto;padding:6px 8px;gap:7px;
-    scrollbar-width:none;
-    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
   }
   #kpi-row::-webkit-scrollbar{display:none}
-  .kpi{
-    flex:0 0 130px;min-width:130px;
-    padding:8px 12px;border-radius:10px;
-  }
+  .kpi{flex:0 0 130px;min-width:130px;padding:8px 12px;border-radius:10px;}
   .kpi-val{font-size:18px}
   .kpi-label{font-size:9px}
   /* Hide desktop panels */
@@ -175,9 +193,7 @@ canvas{touch-action:none}
   /* Show mobile elements */
   #bottom-sheet{display:block}
   #mob-nav{display:flex}
-  /* Push canvas above bottom nav */
-  canvas{padding-bottom:56px;height:calc(100% - 56px)!important}
-  /* Notification above nav */
+  canvas{height:calc(100% - 56px)!important}
   #notif{bottom:70px;top:auto;transform:translateX(-50%)}
 }
 @media(max-width:380px){
@@ -218,6 +234,18 @@ canvas{touch-action:none}
   <button id="daynight-btn" onclick="toggleDayNight()" title="Toggle day/night">🌙</button>
   <div id="alert-dot"></div>
   <div id="user-av">CS</div>
+</div>
+
+<!-- MOBILE SEARCH + AREA BAR -->
+<div id="mob-search-bar">
+  <input id="mob-search-input" placeholder="🔍 Search object, area…" autocomplete="off"/>
+  <div id="mob-area-row">
+    <button class="mob-area-btn active" onclick="mobAreaBtn(this,'pads')">🚀 Pads</button>
+    <button class="mob-area-btn" onclick="mobAreaBtn(this,'assembly')">🏗️ Assembly</button>
+    <button class="mob-area-btn" onclick="mobAreaBtn(this,'missioncontrol')">📡 Mission Ctrl</button>
+    <button class="mob-area-btn" onclick="mobAreaBtn(this,'landing')">🎯 Landing Zone</button>
+    <button class="mob-area-btn" onclick="mobAreaBtn(this,'coast')">🌊 Coast</button>
+  </div>
 </div>
 
 <!-- KPI CARDS -->
@@ -1616,6 +1644,26 @@ function mobNav(area,label){
 window.toggleSheet=toggleSheet;
 window.showSheetTab=showSheetTab;
 window.mobNav=mobNav;
+
+// ─── MOBILE SEARCH + AREA BAR ──────────────────────────────────
+function mobAreaBtn(el,area){
+  document.querySelectorAll('.mob-area-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  flyToArea(area);
+}
+document.getElementById('mob-search-input').addEventListener('keydown',function(e){
+  if(e.key!=='Enter')return;
+  const q=e.target.value.toLowerCase();
+  if(q.includes('pad'))flyToArea('pads');
+  else if(q.includes('assembly')||q.includes('vab'))flyToArea('assembly');
+  else if(q.includes('mission')||q.includes('control'))flyToArea('missioncontrol');
+  else if(q.includes('land'))flyToArea('landing');
+  else if(q.includes('coast')||q.includes('beach'))flyToArea('coast');
+  else if(q.includes('rocket'))selectObject(rocketGroup);
+  e.target.value='';
+  e.target.blur();
+});
+window.mobAreaBtn=mobAreaBtn;
 
 // ─── START ─────────────────────────────────────────────────────
 requestAnimationFrame(animate);
